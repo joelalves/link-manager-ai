@@ -73,7 +73,7 @@ export function LinkCard({ link, onDelete }: Props) {
           </button>
           <button
             onClick={() => onDelete(link.id)}
-            className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-700"
+            className="rounded p-1.5 text-muted hover:bg-red-900/20 hover:text-red-400"
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />

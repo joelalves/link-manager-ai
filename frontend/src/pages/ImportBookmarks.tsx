@@ -84,7 +84,7 @@ export function ImportBookmarks() {
           </span>
         </label>
 
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         {result && (
           <div className="rounded-md border border-pine/30 bg-pine-light p-4 text-sm">

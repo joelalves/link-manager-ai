@@ -188,7 +188,7 @@ export function Dashboard() {
           <Spinner className="h-6 w-6" />
         </div>
       ) : error ? (
-        <p className="py-20 text-center text-red-700">{error}</p>
+        <p className="py-20 text-center text-red-400">{error}</p>
       ) : links.length === 0 ? (
         <EmptyState hasFilters={!!hasFilters} />
       ) : (

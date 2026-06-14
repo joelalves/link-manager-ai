@@ -12,7 +12,7 @@ const variants: Record<Variant, string> = {
   primary: "bg-pine text-white hover:bg-pine-dark border border-transparent",
   outline: "bg-surface text-ink border border-line hover:border-ink/30",
   ghost: "bg-transparent text-muted hover:text-ink border border-transparent",
-  danger: "bg-transparent text-red-700 border border-red-200 hover:bg-red-50",
+  danger: "bg-transparent text-red-400 border border-red-800/40 hover:bg-red-900/20",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

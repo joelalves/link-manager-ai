@@ -4,15 +4,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        paper: "#FBFAF7",
-        surface: "#FFFFFF",
-        ink: "#16161D",
-        muted: "#6B6B76",
-        line: "#E6E3DC",
+        paper: "#0E1017",
+        surface: "#161922",
+        ink: "#E4E6F1",
+        muted: "#7B7F9E",
+        line: "#272B3D",
         pine: {
-          DEFAULT: "#1F6F5C",
-          dark: "#185647",
-          light: "#E7F0EC",
+          DEFAULT: "#3ECFA8",
+          dark: "#30B892",
+          light: "#0D2620",
         },
       },
       fontFamily: {
@@ -21,7 +21,7 @@ export default {
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(22,22,29,0.04), 0 8px 24px -16px rgba(22,22,29,0.18)",
+        card: "0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5)",
       },
     },
   },

@@ -48,7 +48,7 @@ export function Login() {
             required
           />
         </div>
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? <Spinner /> : "Sign in"}
         </Button>
