@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid theme("colors.pine.DEFAULT");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The signature: a library catalog "stamp" for categories. */
+  .stamp {
+    @apply inline-flex items-center font-mono text-[0.65rem] uppercase tracking-[0.18em]
+           text-pine border border-pine/40 rounded-sm px-2 py-0.5;
+  }
+  .hairline {
+    @apply border-t border-line;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
