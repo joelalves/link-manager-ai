@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Library } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
@@ -53,12 +53,6 @@ export function Login() {
           {loading ? <Spinner /> : "Sign in"}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-muted">
-        No account?{" "}
-        <Link to="/register" className="text-pine hover:underline">
-          Create one
-        </Link>
-      </p>
     </AuthShell>
   );
 }

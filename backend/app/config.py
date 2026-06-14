@@ -21,8 +21,13 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
     # Optional extra origins allowed by CORS (comma-separated).
     CORS_ORIGINS: str = ""
-    BACKEND_PORT: int = 5000
+    BACKEND_PORT: int = 8000
     RATE_LIMIT: str = "200/minute"
+
+    # Default seed user created on first startup (change these in .env)
+    DEFAULT_USERNAME: str = "admin"
+    DEFAULT_EMAIL: str = "admin@localhost"
+    DEFAULT_PASSWORD: str = "changeme123"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

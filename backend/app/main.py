@@ -9,13 +9,33 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from .config import settings
-from .database import Base, engine
+from .database import Base, SessionLocal, engine
+from .models import User
 from .routers import auth, bookmarks, links, search
+from .security import hash_password
 
 logging.basicConfig(level=logging.INFO)
 
 # Create tables on startup. For production migrations, use Alembic instead.
 Base.metadata.create_all(bind=engine)
+
+
+def _seed_default_user() -> None:
+    db = SessionLocal()
+    try:
+        if db.query(User).first() is None:
+            db.add(User(
+                username=settings.DEFAULT_USERNAME,
+                email=settings.DEFAULT_EMAIL,
+                password_hash=hash_password(settings.DEFAULT_PASSWORD),
+            ))
+            db.commit()
+            logging.info("Created default user '%s'", settings.DEFAULT_USERNAME)
+    finally:
+        db.close()
+
+
+_seed_default_user()
 
 limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT])
 

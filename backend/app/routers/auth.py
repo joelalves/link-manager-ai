@@ -1,37 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User
-from ..schemas import LoginRequest, Token, UserCreate, UserOut
-from ..security import create_access_token, hash_password, verify_password
+from ..schemas import LoginRequest, Token
+from ..security import create_access_token, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate, db: Session = Depends(get_db)):
-    existing = (
-        db.query(User)
-        .filter(or_(User.username == payload.username, User.email == payload.email))
-        .first()
-    )
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username or email already registered",
-        )
-
-    user = User(
-        username=payload.username,
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
 
 
 @router.post("/login", response_model=Token)

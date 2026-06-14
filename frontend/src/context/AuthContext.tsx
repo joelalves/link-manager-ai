@@ -12,7 +12,6 @@ interface AuthState {
   token: string | null;
   username: string | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -41,18 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsername(name);
   }
 
-  async function register(name: string, email: string, password: string) {
-    await api.register(name, email, password);
-    await login(name, password);
-  }
-
   function logout() {
     setTokenState(null);
     setUsername(null);
   }
 
   const value = useMemo(
-    () => ({ token, username, login, register, logout }),
+    () => ({ token, username, login, logout }),
     [token, username]
   );
 

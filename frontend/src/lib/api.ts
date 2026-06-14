@@ -1,5 +1,5 @@
 const API_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:5000";
+  (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8000";
 
 const TOKEN_KEY = "shelf_token";
 
@@ -72,12 +72,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  register: (username: string, email: string, password: string) =>
-    request<{ id: number; username: string; email: string }>(
-      "/api/auth/register",
-      { method: "POST", body: JSON.stringify({ username, email, password }) }
-    ),
-
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/api/auth/login", {
       method: "POST",
