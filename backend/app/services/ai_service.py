@@ -19,22 +19,22 @@ from ..config import settings
 logger = logging.getLogger("ai_service")
 
 DEFAULT_CATEGORY = "Uncategorized"
-MAX_TAGS = 8
+MAX_TAGS = 5
 
-PROMPT_TEMPLATE = """Analyze the following webpage information and extract structured metadata.
+PROMPT_TEMPLATE = """Analyze the following webpage and extract structured metadata.
 
-Return only valid JSON with the following fields:
-- title
-- description
-- category
-- tags
+Return only valid JSON with exactly these fields:
+- title: clear, concise page title
+- description: 1-2 sentence summary of what the page is about
+- category: single broad topic (e.g. "Programming", "Design", "Machine Learning", "Finance")
+- tags: array of 3-5 specific, high-signal keywords
 
-Rules:
-- The title should be clear and concise.
-- The description should summarize the page in 1 or 2 sentences.
-- The category should be one general topic.
-- Tags should be specific keywords.
-- Return between 3 and 8 tags.
+Tag rules:
+- Each tag is 1-6 words, lowercase
+- Prefer specific over generic (e.g. "react hooks" not "javascript")
+- Cover different facets: technology, topic, audience, or use-case
+- No duplicates or near-duplicates
+- Maximum 5 tags
 
 Webpage content:
 {content}
