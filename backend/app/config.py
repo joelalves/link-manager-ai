@@ -29,17 +29,12 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
+    # Port the frontend container listens on. Allows any hostname on this port.
+    FRONTEND_PORT: int = 3000
+
     @property
     def cors_origin_regex(self) -> str:
-        """Regex that allows any host on the same port as FRONTEND_URL.
-
-        This means http://localhost:3000, http://192.168.x.x:3000, and
-        https://your-domain.com:3000 are all accepted without listing them
-        explicitly — ideal for home-server deployments with changing IPs.
-        """
-        from urllib.parse import urlparse
-        port = urlparse(self.FRONTEND_URL).port or 3000
-        return rf"https?://[^/:]+:{port}"
+        return rf"https?://[^/:]+:{self.FRONTEND_PORT}"
 
 
 settings = Settings()
