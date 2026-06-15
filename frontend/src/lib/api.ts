@@ -3,7 +3,8 @@
 const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ||
   `${window.location.protocol}//${window.location.hostname}:8000`;
-
+console.log(import.meta.env.VITE_API_URL);
+console.log("API_URL:", API_URL);
 const TOKEN_KEY = "shelf_token";
 
 export function getToken(): string | null {
