@@ -1,5 +1,8 @@
+// If VITE_API_URL is set at build time use it; otherwise derive from the
+// browser's hostname so the same build works on local IP and external domain.
 const API_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8000";
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  `${window.location.protocol}//${window.location.hostname}:8000`;
 
 const TOKEN_KEY = "shelf_token";
 
@@ -51,6 +54,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (resp.status === 204) return undefined as T;
 
+  // Expired / invalid token — kick to login without exposing the error.
+  if (resp.status === 401 && window.location.pathname !== "/login") {
+    localStorage.removeItem("shelf_token");
+    localStorage.removeItem("shelf_username");
+    window.location.href = "/login";
+    return undefined as T;
+  }
+
   let data: unknown = null;
   const text = await resp.text();
   if (text) {
@@ -71,12 +82,19 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+export interface LinksMeta {
+  categories: string[];
+  tags: string[];
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }),
+
+  getMeta: () => request<LinksMeta>("/api/links/meta"),
 
   listLinks: () => request<Link[]>("/api/links"),
 

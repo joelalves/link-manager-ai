@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, ArrowLeft } from "lucide-react";
-import { api, ApiError } from "../lib/api";
-import { Button, Input, Label, Spinner, Textarea } from "../components/ui";
+import { api, ApiError, type LinksMeta } from "../lib/api";
+import { Button, CategoryInput, Input, Label, Spinner, TagsInput, Textarea } from "../components/ui";
 
 export function AddLink() {
   const navigate = useNavigate();
@@ -12,10 +12,15 @@ export function AddLink() {
   const [category, setCategory] = useState("");
   const [tagsText, setTagsText] = useState("");
   const [analyzed, setAnalyzed] = useState(false);
+  const [meta, setMeta] = useState<LinksMeta>({ categories: [], tags: [] });
 
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.getMeta().then(setMeta).catch(() => {});
+  }, []);
 
   async function handleAnalyze() {
     if (!url) return;
@@ -116,17 +121,18 @@ export function AddLink() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <Label>Category</Label>
-            <Input
+            <CategoryInput
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={setCategory}
+              suggestions={meta.categories}
             />
           </div>
           <div>
             <Label>Tags (comma-separated)</Label>
-            <Input
+            <TagsInput
               value={tagsText}
-              onChange={(e) => setTagsText(e.target.value)}
-              placeholder="ai, productivity"
+              onChange={setTagsText}
+              suggestions={meta.tags}
             />
           </div>
         </div>

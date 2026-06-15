@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { api, ApiError } from "../lib/api";
-import { Button, Input, Label, Spinner, Textarea } from "../components/ui";
+import { api, ApiError, type LinksMeta } from "../lib/api";
+import { Button, CategoryInput, Input, Label, Spinner, TagsInput, Textarea } from "../components/ui";
 import { hostname } from "../lib/utils";
 
 export function EditLink() {
@@ -13,12 +13,17 @@ export function EditLink() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<LinksMeta>({ categories: [], tags: [] });
 
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [tagsText, setTagsText] = useState("");
+
+  useEffect(() => {
+    api.getMeta().then(setMeta).catch(() => {});
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -105,16 +110,18 @@ export function EditLink() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <Label>Category</Label>
-            <Input
+            <CategoryInput
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={setCategory}
+              suggestions={meta.categories}
             />
           </div>
           <div>
             <Label>Tags (comma-separated)</Label>
-            <Input
+            <TagsInput
               value={tagsText}
-              onChange={(e) => setTagsText(e.target.value)}
+              onChange={setTagsText}
+              suggestions={meta.tags}
             />
           </div>
         </div>

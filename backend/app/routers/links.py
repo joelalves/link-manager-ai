@@ -9,6 +9,7 @@ from ..schemas import (
     AnalyzeResponse,
     LinkCreate,
     LinkOut,
+    LinksMeta,
     LinkUpdate,
 )
 from ..services.ai_service import analyze_url
@@ -26,6 +27,20 @@ def list_links(
         .order_by(Link.created_at.desc())
         .all()
     )
+
+
+@router.get("/meta", response_model=LinksMeta)
+def get_links_meta(
+    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    rows = db.query(Link.category, Link.tags).filter(Link.user_id == user.id).all()
+    categories = sorted({r.category for r in rows if r.category})
+    tags_set: set[str] = set()
+    for r in rows:
+        for t in (r.tags or []):
+            if t:
+                tags_set.add(t)
+    return LinksMeta(categories=categories, tags=sorted(tags_set))
 
 
 @router.post("/analyze-url", response_model=AnalyzeResponse)

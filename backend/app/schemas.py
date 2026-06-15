@@ -58,6 +58,12 @@ class LinkOut(LinkBase):
     updated_at: datetime
 
 
+# ---- Links meta ----
+class LinksMeta(BaseModel):
+    categories: list[str]
+    tags: list[str]
+
+
 # ---- AI analysis ----
 class AnalyzeRequest(BaseModel):
     url: str = Field(min_length=1, max_length=2048)

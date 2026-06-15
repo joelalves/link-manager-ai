@@ -1,5 +1,7 @@
 import {
   forwardRef,
+  useRef,
+  useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type TextareaHTMLAttributes,
@@ -83,5 +85,103 @@ export function Spinner({ className }: { className?: string }) {
       )}
       aria-hidden
     />
+  );
+}
+
+const suggestionList =
+  "absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-line bg-surface shadow-card";
+const suggestionItem =
+  "block w-full px-3 py-2 text-left text-sm text-ink hover:bg-paper transition-colors";
+
+export function CategoryInput({
+  value,
+  onChange,
+  suggestions,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  suggestions: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const matches = suggestions.filter(
+    (s) => s.toLowerCase().includes(value.toLowerCase()) && s !== value
+  );
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+      />
+      {open && matches.length > 0 && (
+        <div className={suggestionList}>
+          {matches.slice(0, 6).map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onMouseDown={() => { onChange(cat); setOpen(false); }}
+              className={suggestionItem}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TagsInput({
+  value,
+  onChange,
+  suggestions,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  suggestions: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const parts = value.split(",");
+  const current = parts[parts.length - 1].trim().toLowerCase();
+  const used = new Set(parts.slice(0, -1).map((p) => p.trim()).filter(Boolean));
+
+  const matches = suggestions.filter(
+    (s) => s.toLowerCase().includes(current) && !used.has(s) && current.length > 0
+  );
+
+  function pick(tag: string) {
+    const before = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
+    onChange([...before, tag].join(", ") + ", ");
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="ai, productivity"
+      />
+      {open && matches.length > 0 && (
+        <div className={suggestionList}>
+          {matches.slice(0, 6).map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onMouseDown={() => pick(tag)}
+              className={cn(suggestionItem, "font-mono")}
+            >
+              <span className="text-pine">#</span> {tag}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
