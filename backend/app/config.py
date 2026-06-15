@@ -19,8 +19,6 @@ class Settings(BaseSettings):
 
     # App
     FRONTEND_URL: str = "http://localhost:3000"
-    # Optional extra origins allowed by CORS (comma-separated).
-    CORS_ORIGINS: str = ""
     BACKEND_PORT: int = 8000
     RATE_LIMIT: str = "200/minute"
 
@@ -32,26 +30,16 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
-    def cors_origins(self) -> list[str]:
-        """Allowed CORS origins.
+    def cors_origin_regex(self) -> str:
+        """Regex that allows any host on the same port as FRONTEND_URL.
 
-        Always includes localhost + 127.0.0.1 on :3000 for local dev, plus
-        FRONTEND_URL and anything in CORS_ORIGINS. Trailing slashes are
-        stripped and duplicates removed so small .env mistakes don't break
-        the preflight.
+        This means http://localhost:3000, http://192.168.x.x:3000, and
+        https://your-domain.com:3000 are all accepted without listing them
+        explicitly — ideal for home-server deployments with changing IPs.
         """
-        candidates = [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            self.FRONTEND_URL,
-            *self.CORS_ORIGINS.split(","),
-        ]
-        origins: list[str] = []
-        for origin in candidates:
-            cleaned = origin.strip().rstrip("/")
-            if cleaned and cleaned not in origins:
-                origins.append(cleaned)
-        return origins
+        from urllib.parse import urlparse
+        port = urlparse(self.FRONTEND_URL).port or 3000
+        return rf"https?://[^/:]+:{port}"
 
 
 settings = Settings()

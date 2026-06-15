@@ -1,4 +1,5 @@
 import logging
+import re
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,7 +47,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origin_regex=settings.cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,7 +62,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     # otherwise a 500 surfaces in the browser as a misleading "CORS error".
     headers = {}
     origin = request.headers.get("origin")
-    if origin and origin.rstrip("/") in settings.cors_origins:
+    if origin and re.fullmatch(settings.cors_origin_regex, origin.rstrip("/")):
         headers["Access-Control-Allow-Origin"] = origin
         headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
