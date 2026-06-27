@@ -103,10 +103,10 @@ pipeline {
             steps {
                 sh """
                     echo "Checking backend..."
-                    curl -f http://joel-alves.zapto.org/:8000 || true
+                    curl -f http://joel-alves.zapto.org:8000 || true
 
                     echo "Checking frontend..."
-                    curl -f http://joel-alves.zapto.org/:3000 || true
+                    curl -f http://joel-alves.zapto.org:3000 || true
 
                     echo "Container status:"
                     docker compose ps
