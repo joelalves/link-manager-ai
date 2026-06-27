@@ -4,10 +4,10 @@ pipeline {
     tools {
         nodejs 'NodeJS 26.x' // Use the NodeJS configuration from Jenkins
     }
-
-    node {
+    
+    stages {
         stage('SCM') {
-            checkout scm
+        checkout scm
         }
 
         stage('SonarQube Analysis') {
