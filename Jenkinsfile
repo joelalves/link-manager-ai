@@ -124,7 +124,7 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully: code analyzed and application deployed.'
+            echo 'Pipeline completed successfully: code analyzed and application deployed..'
         }
 
         failure {
