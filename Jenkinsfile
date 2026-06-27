@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS 14.x' // Use the NodeJS configuration from Jenkins
+        nodejs 'NodeJS 26.x' // Use the NodeJS configuration from Jenkins
     }
 
     node {
