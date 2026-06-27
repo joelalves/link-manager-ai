@@ -27,8 +27,7 @@ pipeline {
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner'
-
-                    withSonarQubeEnv('SonarQube') {
+                    withSonarQubeEnv() {
                         sh "${scannerHome}/bin/sonar-scanner"
                     }
                 }
@@ -40,15 +39,6 @@ pipeline {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
-            }
-        }
-
-        stage('Deploy with Docker Compose') {
-            steps {
-                sh """
-                    docker compose up -d --build --remove-orphans
-                    docker compose ps
-                """
             }
         }
     }
