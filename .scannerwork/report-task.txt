@@ -1,0 +1,6 @@
+projectKey=joelalves_link-manager-ai_952b727b-254a-4eb7-bb31-b4693ed2764c
+serverUrl=http://joel-alves.zapto.org:9000
+serverVersion=10.6.0.92116
+dashboardUrl=http://joel-alves.zapto.org:9000/dashboard?id=joelalves_link-manager-ai_952b727b-254a-4eb7-bb31-b4693ed2764c
+ceTaskId=cf256831-06a9-44eb-9126-3c2ccd9c1276
+ceTaskUrl=http://joel-alves.zapto.org:9000/api/ce/task?id=cf256831-06a9-44eb-9126-3c2ccd9c1276
