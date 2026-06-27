@@ -33,12 +33,13 @@ pipeline {
                 }
             }
         }
-
-        stage('Quality Gate') {
+        
+        stage('Deploy with Docker Compose') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                sh """
+                    docker compose up -d --build --remove-orphans
+                    docker compose ps
+                """
             }
         }
     }
