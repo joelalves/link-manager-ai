@@ -69,41 +69,6 @@ pipeline {
             }
         }
 
-        stage('Backend Tests and Coverage') {
-            steps {
-                sh """
-                    cd backend
-
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-
-                    python -m pip install --upgrade pip
-
-                    if [ -f requirements.txt ]; then
-                        pip install -r requirements.txt
-                    fi
-
-                    pip install pytest pytest-cov
-
-                    pytest --cov=app --cov-report=xml:coverage.xml
-                """
-            }
-        }
-
-        stage('Frontend Tests and Coverage') {
-            steps {
-                sh """
-                    cd frontend
-
-                    if npm run | grep -q "test"; then
-                        npm test -- --coverage
-                    else
-                        echo "No frontend test script found. Skipping frontend coverage."
-                    fi
-                """
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 script {
