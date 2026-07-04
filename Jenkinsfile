@@ -44,7 +44,7 @@ pipeline {
                 """
             }
         }
-
+        
         stage('Validate Docker Compose') {
             steps {
                 sh """

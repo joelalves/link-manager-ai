@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { AddLink } from "./pages/AddLink";
 import { EditLink } from "./pages/EditLink";
 import { ImportBookmarks } from "./pages/ImportBookmarks";
+import { Notes } from "./pages/Notes";
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();
@@ -54,6 +55,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ImportBookmarks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes"
+            element={
+              <ProtectedRoute>
+                <Notes />
               </ProtectedRoute>
             }
           />

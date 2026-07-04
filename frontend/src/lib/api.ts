@@ -87,6 +87,11 @@ export interface LinksMeta {
   tags: string[];
 }
 
+export interface Note {
+  content: string;
+  updated_at: string;
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/api/auth/login", {
@@ -143,6 +148,14 @@ export const api = {
     });
     return request<Link[]>(`/api/search?${qs.toString()}`);
   },
+
+  getNote: () => request<Note>("/api/notes"),
+
+  updateNote: (content: string) =>
+    request<Note>("/api/notes", {
+      method: "PUT",
+      body: JSON.stringify({ content }),
+    }),
 
   importBookmarks: (file: File, useAi: boolean) => {
     const form = new FormData();

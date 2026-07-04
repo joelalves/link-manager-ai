@@ -64,6 +64,17 @@ class LinksMeta(BaseModel):
     tags: list[str]
 
 
+# ---- Notes ----
+class NoteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    content: str
+    updated_at: datetime
+
+
+class NoteUpdate(BaseModel):
+    content: str = Field(default="", max_length=200_000)
+
+
 # ---- AI analysis ----
 class AnalyzeRequest(BaseModel):
     url: str = Field(min_length=1, max_length=2048)

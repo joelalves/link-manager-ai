@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from .config import settings
 from .database import Base, SessionLocal, engine
 from .models import User
-from .routers import auth, bookmarks, links, search
+from .routers import auth, bookmarks, links, notes, search
 from .security import hash_password
 
 logging.basicConfig(level=logging.INFO)
@@ -76,6 +76,7 @@ app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(search.router)
 app.include_router(bookmarks.router)
+app.include_router(notes.router)
 
 
 @app.get("/api/health", tags=["health"])
