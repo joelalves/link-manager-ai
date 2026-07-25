@@ -24,7 +24,7 @@ export function LinkCard({ link, onDelete }: Props) {
         </span>
       </div>
 
-      <h3 className="mt-3 font-display text-lg font-medium leading-snug">
+      <h3 className="mt-3 break-words font-display text-lg font-medium leading-snug">
         <a
           href={link.url}
           target="_blank"
@@ -36,7 +36,9 @@ export function LinkCard({ link, onDelete }: Props) {
       </h3>
 
       {link.description && (
-        <p className="mt-2 line-clamp-3 text-sm text-muted">{link.description}</p>
+        <p className="mt-2 line-clamp-3 break-words text-sm text-muted">
+          {link.description}
+        </p>
       )}
 
       {link.tags.length > 0 && (
