@@ -20,7 +20,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="border-b border-line bg-paper/80 backdrop-blur sticky top-0 z-10">
+    <header className="border-b border-line bg-paper/80 backdrop-blur sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">

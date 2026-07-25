@@ -63,7 +63,7 @@ export function LinkCard({ link, onDelete }: Props) {
           <ExternalLink className="h-3.5 w-3.5" />
           {hostname(link.url)}
         </a>
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
           <button
             onClick={() => navigate(`/edit/${link.id}`)}
             className="rounded p-1.5 text-muted hover:bg-paper hover:text-ink"

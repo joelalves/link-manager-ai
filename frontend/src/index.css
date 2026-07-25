@@ -8,6 +8,8 @@
   }
   body {
     @apply bg-paper text-ink font-sans antialiased;
+    /* Respect the iPhone home-indicator when installed as a PWA. */
+    padding-bottom: env(safe-area-inset-bottom);
   }
   :focus-visible {
     outline: 2px solid theme("colors.pine.DEFAULT");
