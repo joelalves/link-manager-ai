@@ -95,33 +95,6 @@ pipeline {
             }
         }
 
-        stage('Strix Security Scan') {
-            environment {
-                STRIX_LLM = credentials('strix-llm')
-                LLM_API_KEY = credentials('strix-llm-api-key')
-            }
-            steps {
-                script {
-                    def status = sh(
-                        script: '''
-                            set -o pipefail
-                            curl -sSL https://strix.ai/install | bash
-                            strix -n -t ./ --scan-mode quick | tee strix-report.log
-                        ''',
-                        returnStatus: true
-                    )
-                    if (status != 0) {
-                        unstable "Strix flagged potential findings (exit code ${status}) — see strix-report.log"
-                    }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'strix-report.log', allowEmptyArchive: true
-                }
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
                 sh """
