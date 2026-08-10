@@ -12,7 +12,7 @@ from ..schemas import (
     LinksMeta,
     LinkUpdate,
 )
-from ..services.ai_service import analyze_url
+from ..services.ai_service import UnsafeURLError, analyze_url
 
 router = APIRouter(prefix="/api/links", tags=["links"])
 
@@ -46,7 +46,10 @@ def get_links_meta(
 @router.post("/analyze-url", response_model=AnalyzeResponse)
 def analyze(payload: AnalyzeRequest, user: User = Depends(get_current_user)):
     """Run AI analysis on a URL without saving it (for the 'confirm/edit' step)."""
-    return analyze_url(payload.url)
+    try:
+        return analyze_url(payload.url)
+    except UnsafeURLError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
 
 
 @router.post("", response_model=LinkOut, status_code=status.HTTP_201_CREATED)
@@ -74,7 +77,10 @@ def create_link(
 
     needs_ai = not (title and description and category and tags)
     if payload.use_ai and needs_ai:
-        ai = analyze_url(payload.url)
+        try:
+            ai = analyze_url(payload.url)
+        except UnsafeURLError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
         title = title or ai["title"]
         description = description or ai["description"]
         category = category or ai["category"]

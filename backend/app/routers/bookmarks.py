@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..deps import get_current_user
 from ..models import Link, User
-from ..services.ai_service import analyze_url
+from ..services.ai_service import UnsafeURLError, analyze_url
 from ..services.bookmark_service import parse_bookmarks
 
 router = APIRouter(prefix="/api/bookmarks", tags=["bookmarks"])
@@ -40,11 +40,16 @@ def import_bookmarks(
         title = bm["title"]
         description, category, tags = "", "", []
         if use_ai:
-            ai = analyze_url(bm["url"])
-            title = title or ai["title"]
-            description = ai["description"]
-            category = ai["category"]
-            tags = ai["tags"]
+            try:
+                ai = analyze_url(bm["url"])
+                title = title or ai["title"]
+                description = ai["description"]
+                category = ai["category"]
+                tags = ai["tags"]
+            except UnsafeURLError:
+                # Don't let one bookmark pointing at an internal address abort
+                # the whole batch — just skip AI enrichment for this one.
+                pass
 
         db.add(
             Link(

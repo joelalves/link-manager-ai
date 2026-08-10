@@ -6,9 +6,11 @@ and parsing failures degrade gracefully to a metadata-only fallback so the
 rest of the app keeps working even without an API key.
 """
 
+import ipaddress
 import json
 import logging
 import re
+import socket
 from urllib.parse import urlparse
 
 import httpx
@@ -20,6 +22,48 @@ logger = logging.getLogger("ai_service")
 
 DEFAULT_CATEGORY = "Uncategorized"
 MAX_TAGS = 5
+MAX_REDIRECTS = 5
+_ALLOWED_SCHEMES = {"http", "https"}
+
+
+class UnsafeURLError(ValueError):
+    """Raised when a URL targets a disallowed network destination (SSRF guard)."""
+
+
+def _is_unsafe_ip(ip_str: str) -> bool:
+    ip = ipaddress.ip_address(ip_str)
+    return (
+        ip.is_loopback
+        or ip.is_private
+        or ip.is_link_local
+        or ip.is_unspecified
+        or ip.is_reserved
+        or ip.is_multicast
+    )
+
+
+def _validate_url(url: str) -> None:
+    """Block SSRF: only allow http(s) URLs that resolve to public addresses.
+
+    Resolves the hostname (rather than string-matching it) so this also
+    catches DNS names that point at internal/loopback/metadata addresses.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in _ALLOWED_SCHEMES:
+        raise UnsafeURLError(f"Unsupported URL scheme: {parsed.scheme!r}")
+    hostname = parsed.hostname
+    if not hostname:
+        raise UnsafeURLError("URL has no hostname")
+
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise UnsafeURLError(f"Could not resolve host: {hostname}") from exc
+
+    for info in infos:
+        ip_str = info[4][0]
+        if _is_unsafe_ip(ip_str):
+            raise UnsafeURLError(f"URL resolves to a disallowed address: {ip_str}")
 
 PROMPT_TEMPLATE = """Analyze the following webpage and extract structured metadata.
 
@@ -43,13 +87,27 @@ Webpage content:
 
 def _fetch_page(url: str) -> tuple[str, str, str]:
     """Return (page_title, meta_description, readable_text)."""
+    _validate_url(url)  # raises UnsafeURLError uncaught — surfaced to the caller
     try:
         with httpx.Client(
             timeout=settings.AI_TIMEOUT_SECONDS,
-            follow_redirects=True,
+            follow_redirects=False,
             headers={"User-Agent": "LinkManagerBot/1.0"},
         ) as client:
             resp = client.get(url)
+            # Redirects are followed manually, re-validating each hop, so a
+            # redirect can't be used to smuggle a request to an internal host.
+            redirects = 0
+            while resp.is_redirect and redirects < MAX_REDIRECTS:
+                location = resp.headers.get("location")
+                if not location:
+                    break
+                next_url = str(httpx.URL(url).join(location))
+                _validate_url(next_url)
+                url = next_url
+                resp = client.get(url)
+                redirects += 1
+
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -63,6 +121,8 @@ def _fetch_page(url: str) -> tuple[str, str, str]:
                 tag.decompose()
             text = re.sub(r"\s+", " ", soup.get_text(" ")).strip()
             return page_title, meta_desc, text[: settings.AI_MAX_CONTENT_CHARS]
+    except UnsafeURLError:
+        raise
     except Exception as exc:  # network, parse, timeout, etc.
         logger.warning("Failed to fetch %s: %s", url, type(exc).__name__)
         return "", "", ""
