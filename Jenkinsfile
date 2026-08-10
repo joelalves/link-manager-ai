@@ -88,7 +88,7 @@ pipeline {
                         def qg = waitForQualityGate abortPipeline: false
 
                         if (qg.status != 'OK') {
-                            warning "Pipeline stopped because SonarQube Quality Gate failed: ${qg.status}"
+                            unstable "SonarQube Quality Gate failed: ${qg.status}"
                         }
                     }
                 }
