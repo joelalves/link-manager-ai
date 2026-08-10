@@ -6,11 +6,13 @@ and parsing failures degrade gracefully to a metadata-only fallback so the
 rest of the app keeps working even without an API key.
 """
 
+import contextlib
 import ipaddress
 import json
 import logging
 import re
 import socket
+import threading
 from urllib.parse import urlparse
 
 import httpx
@@ -24,6 +26,11 @@ DEFAULT_CATEGORY = "Uncategorized"
 MAX_TAGS = 5
 MAX_REDIRECTS = 5
 _ALLOWED_SCHEMES = {"http", "https"}
+
+# Serializes the DNS-pinning window below so concurrent requests (FastAPI
+# runs sync routes in a thread pool) can't clobber each other's patch of the
+# process-global socket.getaddrinfo.
+_dns_pin_lock = threading.Lock()
 
 
 class UnsafeURLError(ValueError):
@@ -42,11 +49,13 @@ def _is_unsafe_ip(ip_str: str) -> bool:
     )
 
 
-def _validate_url(url: str) -> None:
+def _validate_url(url: str) -> tuple[str, str]:
     """Block SSRF: only allow http(s) URLs that resolve to public addresses.
 
     Resolves the hostname (rather than string-matching it) so this also
     catches DNS names that point at internal/loopback/metadata addresses.
+    Returns (hostname, safe_ip) so the caller can pin the actual connection
+    to the exact address that was just checked — see _pinned_resolution.
     """
     parsed = urlparse(url)
     if parsed.scheme not in _ALLOWED_SCHEMES:
@@ -60,10 +69,40 @@ def _validate_url(url: str) -> None:
     except socket.gaierror as exc:
         raise UnsafeURLError(f"Could not resolve host: {hostname}") from exc
 
+    safe_ip = None
     for info in infos:
         ip_str = info[4][0]
         if _is_unsafe_ip(ip_str):
             raise UnsafeURLError(f"URL resolves to a disallowed address: {ip_str}")
+        if safe_ip is None:
+            safe_ip = ip_str
+    if safe_ip is None:
+        raise UnsafeURLError(f"Could not resolve host: {hostname}")
+    return hostname, safe_ip
+
+
+@contextlib.contextmanager
+def _pinned_resolution(hostname: str, ip: str):
+    """Force DNS resolution of `hostname` to the already-validated `ip` for
+    the duration of the request.
+
+    Without this, httpx re-resolves the hostname itself when it actually
+    connects — a separate DNS lookup after _validate_url's — leaving a
+    window for DNS rebinding (the name resolves to a public IP during
+    validation, then to an internal one moments later at connect time).
+    """
+    original_getaddrinfo = socket.getaddrinfo
+
+    def pinned_getaddrinfo(host, *args, **kwargs):
+        return original_getaddrinfo(ip if host == hostname else host, *args, **kwargs)
+
+    with _dns_pin_lock:
+        socket.getaddrinfo = pinned_getaddrinfo
+        try:
+            yield
+        finally:
+            socket.getaddrinfo = original_getaddrinfo
+
 
 PROMPT_TEMPLATE = """Analyze the following webpage and extract structured metadata.
 
@@ -87,25 +126,29 @@ Webpage content:
 
 def _fetch_page(url: str) -> tuple[str, str, str]:
     """Return (page_title, meta_description, readable_text)."""
-    _validate_url(url)  # raises UnsafeURLError uncaught — surfaced to the caller
+    # Raises UnsafeURLError uncaught — surfaced to the caller.
+    hostname, ip = _validate_url(url)
     try:
         with httpx.Client(
             timeout=settings.AI_TIMEOUT_SECONDS,
             follow_redirects=False,
             headers={"User-Agent": "LinkManagerBot/1.0"},
         ) as client:
-            resp = client.get(url)
-            # Redirects are followed manually, re-validating each hop, so a
-            # redirect can't be used to smuggle a request to an internal host.
+            with _pinned_resolution(hostname, ip):
+                resp = client.get(url)
+            # Redirects are followed manually, re-validating (and re-pinning)
+            # each hop, so a redirect can't be used to smuggle a request to
+            # an internal host.
             redirects = 0
             while resp.is_redirect and redirects < MAX_REDIRECTS:
                 location = resp.headers.get("location")
                 if not location:
                     break
                 next_url = str(httpx.URL(url).join(location))
-                _validate_url(next_url)
+                hostname, ip = _validate_url(next_url)
                 url = next_url
-                resp = client.get(url)
+                with _pinned_resolution(hostname, ip):
+                    resp = client.get(url)
                 redirects += 1
 
             resp.raise_for_status()

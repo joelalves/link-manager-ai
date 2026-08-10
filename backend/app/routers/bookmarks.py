@@ -9,6 +9,8 @@ from ..services.bookmark_service import parse_bookmarks
 
 router = APIRouter(prefix="/api/bookmarks", tags=["bookmarks"])
 
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB — generous for a bookmarks HTML export
+
 
 @router.post("/import")
 def import_bookmarks(
@@ -20,7 +22,14 @@ def import_bookmarks(
     user: User = Depends(get_current_user),
 ):
     """Import an exported Brave (Netscape format) bookmarks HTML file."""
-    raw = file.file.read()
+    # Read one byte past the cap rather than the whole stream, so an
+    # oversized upload never gets fully buffered into memory first.
+    raw = file.file.read(MAX_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Bookmarks file is too large (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)",
+        )
     if not raw:
         raise HTTPException(status_code=400, detail="Empty file")
 
