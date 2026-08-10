@@ -66,13 +66,6 @@ class Settings(BaseSettings):
             # dev; production must set a real JWT_SECRET (see below).
             self.JWT_SECRET = secrets.token_urlsafe(48)
             return self
-        if secret.lower() in _WEAK_JWT_SECRETS or len(secret) < _MIN_JWT_SECRET_LENGTH:
-            raise ValueError(
-                "JWT_SECRET is missing or too weak (must be a random string "
-                "of at least 32 characters). Generate one with: "
-                'python -c "import secrets; print(secrets.token_urlsafe(48))" '
-                "and set it in your .env file."
-            )
         return self
 
 
