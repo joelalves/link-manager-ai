@@ -7,7 +7,7 @@ import { LinkCard } from "../components/LinkCard";
 
 type Sort = "recent" | "oldest" | "title";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 18;
 
 export function Dashboard() {
   const [links, setLinks] = useState<Link[]>([]);
