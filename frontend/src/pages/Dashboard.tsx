@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Plus, Search, Upload, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, Upload, X } from "lucide-react";
 import { api, ApiError, type Link } from "../lib/api";
 import { Button, Input, Spinner } from "../components/ui";
 import { LinkCard } from "../components/LinkCard";
 
 type Sort = "recent" | "oldest" | "title";
+
+const PAGE_SIZE = 50;
 
 export function Dashboard() {
   const [links, setLinks] = useState<Link[]>([]);
@@ -16,6 +18,7 @@ export function Dashboard() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>("recent");
+  const [page, setPage] = useState(1);
 
   async function load() {
     setLoading(true);
@@ -42,6 +45,11 @@ export function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, activeCategory, activeTag, sort]);
 
+  // A new filter/sort invalidates the current page — jump back to page 1.
+  useEffect(() => {
+    setPage(1);
+  }, [query, activeCategory, activeTag, sort]);
+
   async function handleDelete(id: number) {
     if (!confirm("Delete this link?")) return;
     await api.deleteLink(id);
@@ -64,6 +72,9 @@ export function Dashboard() {
   }, [links]);
 
   const hasFilters = activeCategory || activeTag || query;
+
+  const totalPages = Math.max(1, Math.ceil(links.length / PAGE_SIZE));
+  const pagedLinks = links.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -192,11 +203,35 @@ export function Dashboard() {
       ) : links.length === 0 ? (
         <EmptyState hasFilters={!!hasFilters} />
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {links.map((l) => (
-            <LinkCard key={l.id} link={l} onDelete={handleDelete} />
-          ))}
-        </div>
+        <>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pagedLinks.map((l) => (
+              <LinkCard key={l.id} link={l} onDelete={handleDelete} />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" /> Prev
+              </Button>
+              <span className="font-mono text-xs text-muted">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
